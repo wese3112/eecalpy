@@ -4,15 +4,19 @@
 # how to deal with cyclic importing when splitting the classes into separate
 # files (U must know about R and I when an opearation U / R = I is called)
 
-def min_max_to_nom_tol(v_min, v_max):
-    nom = (v_min + v_max) / 2
-    tol = (v_max - nom) / nom
-    return nom, tol
+def min_max_to_nom_tol(min_value, max_value):
+    '''Returns the value in the middle of the given min and max value pair
+    (named as nominal value) and the +/- tolerance in respect to this nominal
+    value as a tuple.
+    '''
+    nominal = (min_value + max_value) / 2
+    tolerance = (max_value - nominal) / nominal
+    return nominal, tolerance
 
 def unit_factor_and_prefix(value):
-    '''Pick a factor (divider) and the respective unit prefix for a given value.
+    '''Returns a factor as float and unit prefix as string for a given value.
 
-    returns: factor, prefix
+    Example: value = 0.000001 --> factor = 1e-6, prefix = 'µ'
     '''
     factors_prefixes = [
         (1e-12, 'p'),
@@ -32,6 +36,7 @@ def unit_factor_and_prefix(value):
 
 
 class ElectricalUnit:
+    '''This is the base class for all electrical units'''
     
     def __init__(self, value, tolerance=0.0, unit=''):
         self.value = value
@@ -111,6 +116,10 @@ class ElectricalUnit:
     
 
 class Factor(ElectricalUnit):
+    '''A factor is used for unit-less results of calculations using U, R, I, etc.
+    It might come form e.g. U/U or a voltage divider calculation. As all other
+    units, a Factor might also have a tolerance range.
+    '''
 
     def __init__(self, factor, tolerance=0.0):
         super(Factor, self).__init__(factor, tolerance, '')
