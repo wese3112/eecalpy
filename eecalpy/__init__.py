@@ -129,12 +129,19 @@ class Factor(ElectricalUnit):
         f_nom, f_tol = min_max_to_nom_tol(f_min, f_max)
         return cls(f_nom, f_tol)
     
-    # def __mul__(self, other):
-    #     if isinstance(other, U):
-    #         cls
-    #         return U.from_min_max(
-    #             self.min * other
-    #         )
+    def __mul__(self, other):
+        if isinstance(other, Factor):
+            return Factor.from_min_max(
+                self.min * other.min,
+                self.max * other.max
+            )
+    
+    def __truediv__(self, other):
+        if isinstance(other, Factor):
+            return Factor.from_min_max(
+                self.min / other.max,
+                self.max / other.min
+            )
 
 
 class R(ElectricalUnit):
@@ -213,14 +220,27 @@ class R(ElectricalUnit):
                 self.min / other.max,  # min. value
                 self.max / other.min  # max. value
             )
+        
+        if isinstance(other, Factor):
+            other_min = min(other)
+            other_max = max(other)
+            return R.from_min_max(
+                self.min
+            )
 
         return (self.min / other, self.max / other)
     
     def __mul__(self, other):
         if isinstance(other, I):  # R * I = U
             return U.from_min_max(
-                self.min * other.min,  # min. voltage
-                self.max * other.max  # max. voltage
+                self.min * other.min,
+                self.max * other.maxe
+            )
+        
+        if isinstance(other, Factor):
+            return R.from_min_max(
+                self.min * other.min,
+                self.max * other.max
             )
         
         r = R.from_min_max(self.min * other, self.max * other, self.alpha_ppm)
@@ -256,8 +276,8 @@ class U(ElectricalUnit):
         super(U, self).__init__(voltage, tolerance, 'V')
     
     @classmethod
-    def from_min_max(cls, v_min, v_max):
-        v_nom, v_tol = min_max_to_nom_tol(v_min, v_max)
+    def from_min_max(cls, _min, _max):
+        v_nom, v_tol = min_max_to_nom_tol(_min, _max)
         return cls(v_nom, v_tol)
     
     def __add__(self, other):
@@ -279,32 +299,32 @@ class U(ElectricalUnit):
         return (self.min - other, self.max - other,)
 
     def __truediv__(self, other):
-        v_min = self.min / other.max  # min. value
-        v_max = self.max / other.min  # max. value
+        _min = self.min / other.max  # min. value
+        _max = self.max / other.min  # max. value
 
         if isinstance(other, R):  # U / R = I
-            return I.from_min_max(v_min, v_max)
+            return I.from_min_max(_min, _max)
         
         if isinstance(other, I):  # U / I = R
-            return R.from_min_max(v_min, v_max)
+            return R.from_min_max(_min, _max)
         
         if isinstance(other, U):  # U / U = Factor
-            return Factor.from_min_max(v_min, v_max)
+            return Factor.from_min_max(_min, _max)
         
         if isinstance(other, Factor):  # U / Factor = U
-            return U.from_min_max(v_min, v_max)
+            return U.from_min_max(_min, _max)
         
         return (self.min / other, self.max / other,)
 
     def __mul__(self, other):
-        v_min = self.min * other.min  # min. value
-        v_max = self.max * other.max  # max. value
+        _min = self.min * other.min  # min. value
+        _max = self.max * other.max  # max. value
 
         if isinstance(other, I):
-            return P.from_min_max(v_min, v_max)
+            return P.from_min_max(_min, _max)
         
         if isinstance(other, Factor):
-            return U.from_min_max(v_min, v_max)
+            return U.from_min_max(_min, _max)
         
         return (self.min / other, self.max / other,)
 
@@ -326,14 +346,14 @@ class I(ElectricalUnit):
         )
 
     def __mul__(self, other):
-        v_min = self.min * other.min
-        v_max = self.max * other.max
+        _min = self.min * other.min
+        _max = self.max * other.max
 
         if isinstance(other, R):  # I * R = U
-            return U.from_min_max(v_min, v_max)
+            return U.from_min_max(_min, _max)
         
         if isinstance(other, U):  # I * U = P
-            return P.from_min_max(v_min, v_max)
+            return P.from_min_max(_min, _max)
     
     def __truediv__(self, other):
         if isinstance(other, I):  # I / I = Factor
@@ -356,16 +376,16 @@ class P(ElectricalUnit):
         return cls(p_nom, p_tol)
 
     def __truediv__(self, other):
-        v_min = self.min / other.max
-        v_max = self.max / other.min
+        _min = self.min / other.max
+        _max = self.max / other.min
 
         if isinstance(other, U):  # P / U = I
-            return I.from_min_max(v_min, v_max)
+            return I.from_min_max(_min, _max)
         
         if isinstance(other, I):  # P / I = U
-            return U.from_min_max(v_min, v_max)
+            return U.from_min_max(_min, _max)
         
         if isinstance(other, P):  # P / P = Factor
-            return Factor.from_min_max(v_min, v_max)
+            return Factor.from_min_max(_min, _max)
         
         return self.min / other, self.max / other
