@@ -160,16 +160,6 @@ class R(ElectricalUnit):
     def alpha_ppm(self):
         return self._alpha_ppm
 
-    # @temperature.setter
-    # def temperature(self, new_temperature):
-    #     err_msg = 'temperature coefficient alpha (R.alpha_ppm) not specified'
-    #     assert self.alpha_ppm is not None, err_msg
-
-    #     r = self.at_temperature(new_temperature)
-
-    #     self.value = r.value
-    #     self._min, self._max = r
-    
     def at_temperature(self, temperature):
         err_msg = 'temperature coefficient alpha (R.alpha_ppm) not specified'
         assert self.alpha_ppm is not None, err_msg
