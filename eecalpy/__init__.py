@@ -234,7 +234,7 @@ class R(ElectricalUnit):
         if isinstance(other, I):  # R * I = U
             return U.from_min_max(
                 self.min * other.min,
-                self.max * other.maxe
+                self.max * other.max
             )
         
         if isinstance(other, Factor):
