@@ -16,7 +16,7 @@ def min_max_to_nom_tol(min_value, max_value):
 def unit_factor_and_prefix(value):
     '''Returns a factor as float and unit prefix as string for a given value.
 
-    Example: value = 0.000001 --> factor = 1e-6, prefix = 'µ'
+    Example: value = 0.000002 --> factor = 1e-6, prefix = 'µ' --> 2µ
     '''
     factors_prefixes = [
         (1e-12, 'p'),
