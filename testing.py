@@ -43,24 +43,37 @@ class TestVoltages(unittest.TestCase):
 
 class TestTypeConversions(unittest.TestCase):
 
-    def test_type_conversions(self):
-        selected_examples = [
-            (R(1) * I(1), U),  # U = R * I
-            (U(1) / R(1), I),  # U / R = I
-            (U(1) / I(1), R),  # U / I = R
-            (U(1) * I(1), P),  # P = U * I
-            (P(1) / U(1), I),  # P / U = I
-            (P(1) / I(1), U),  # P / I = U
-            (R(1) / R(1), Factor),  # R / R = f
-            (I(1) / I(1), Factor),  # I / I = f
-            (U(1) / U(1), Factor),  # U / U = f
-            (P(1) / P(1), Factor),  # P / P = f
-            (Factor(1) * Factor(1), Factor),  # f * f = f
-            (Factor(1) / Factor(1), Factor),  # f / f = f
-        ]
-        
-        for calculation, expected_type in selected_examples:
-            self.assertTrue(isinstance(calculation, expected_type))
+    def test_operations_mul(self):
+        # U = R * I
+        self.assertIsInstance(R(1) * I(1), U)
+        self.assertIsInstance(I(1) * R(1), U)
+
+        # P = U * I
+        self.assertIsInstance(U(1) * I(1), P)
+        self.assertIsInstance(I(1) * U(1), P)
+
+        # factors
+        self.assertIsInstance(Factor(1) * Factor(1), Factor)
+        self.assertIsInstance(U(1) * Factor(1), U)
+        self.assertIsInstance(R(1) * Factor(1), R)
+        self.assertIsInstance(I(1) * Factor(1), I)
+        self.assertIsInstance(P(1) * Factor(1), P)
+        self.assertIsInstance(Factor(1) * U(1), U)
+        self.assertIsInstance(Factor(1) * R(1), R)
+        self.assertIsInstance(Factor(1) * I(1), I)
+        self.assertIsInstance(Factor(1) * P(1), P)
+
+    def test_operations_div(self):
+        self.assertIsInstance(U(1) / R(1), I)  # U / R = I
+        self.assertIsInstance(U(1) / I(1), R)  # U / I = R
+        self.assertIsInstance(P(1) / U(1), I)  # P / U = I
+        self.assertIsInstance(P(1) / I(1), U)  # P / I = U
+        self.assertIsInstance(R(1) / R(1), Factor)  # R / R = f
+        self.assertIsInstance(U(1) / U(1), Factor)  # U / U = f
+        self.assertIsInstance(I(1) / I(1), Factor)  # I / I = f
+        self.assertIsInstance(P(1) / P(1), Factor)  # P / P = f
+        self.assertIsInstance(Factor(1) / Factor(1), Factor)  # f / f = f
+
 
 if __name__ == '__main__':
     unittest.main()
