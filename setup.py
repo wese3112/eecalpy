@@ -1,11 +1,21 @@
-from setuptools import setup
+import setuptools
+import codecs
 
-setup(name='eecalpy',
-      version='0.5',
-      description='Electronics calculation toolset',
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+setuptools.setup(name='eecalpy',
+      version='0.7.3',
+      description='collection of classes for simple to complex electrical calculations',
+      long_description=long_description,
       url='http://github.com/wese3112/eecalpy.git',
       author='Sebastian Werner',
       author_email='wese3112@startmail.com',
-      license='GNU v3.0',
-      packages=['eecalpy'],
-      zip_safe=False)
+      packages=setuptools.find_packages(),
+      zip_safe=False,
+      classifiers=[
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Operating System :: OS Independent",
+      ],
+)

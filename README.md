@@ -1,9 +1,18 @@
-# eecalpy Python module
+eecalpy Python module
+=====================
 
 The *Electrical Engineering Calculations for Python* module is a
 collection of classes for simple to complex electrical calculations.
 
-## Introduction
+Installation
+------------
+
+Eecalpy needs Python 3+, you can install it via pip:
+
+    $ pip install eecalpy
+
+Introduction
+------------
 
 The available units are:
 
@@ -75,8 +84,3 @@ And of course all the standard *U = R * I* stuff works:
     5.0kΩ @ 20°C
     >>> U(3.3) * I(10e-3)
     33.0mW
-
-
-## Installation
-
-Currently only on github, soon on PyPi :)
