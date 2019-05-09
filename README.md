@@ -2,7 +2,8 @@ eecalpy Python module
 =====================
 
 The *Electrical Engineering Calculations for Python* module is a
-collection of classes for simple to complex electrical calculations.
+collection of classes for simple to complex electrical calculations, with a
+special focus on handling tolerances.
 
 Installation
 ------------
@@ -27,13 +28,13 @@ A very simple start would be a perfect 5V voltage:
     >>> U(5)
     5.0V
 
-If having a tolerance, the value, the tolerance, the variance and the value range of a variable is printed:
+A 3.3mA current with a 1% tolerance is defined and printed like this:
 
     >>> I(3.3e-6, 0.01)
     3.3µA ± 1.0% (± 33.0nA) [3.2670 .. 3.3330]µA
 
-Resistors have an optional parameter `alpha_ppm` which is its temperature 
-coefficient α as parts per million (ppm). If it is defined, you can get the
+Resistors have an optional parameter `alpha_ppm` which is the temperature 
+coefficient α in parts per million (ppm). If it is defined, you can get the
 resistors' resistance at a different temperature:
 
     >>> r1 = R(1e3, 0.01, 200)
@@ -42,7 +43,8 @@ resistors' resistance at a different temperature:
     >>> r1.at_temperature(250)  # short cut is r1.at_T(250)
     1.05kΩ ± 1.0% (± 10.46Ω) [1.0355 .. 1.0565]kΩ @ 250°C α=200ppm
 
-The series or parallel resistance of two or more resistors can be calculated using `+` and `|`:
+The series or parallel resistance of two or more resistors can be calculated
+using `+` and `|`:
 
     >>> r1 + r2
     3.7kΩ @ 20°C
@@ -57,7 +59,9 @@ The series or parallel resistance of two or more resistors can be calculated usi
     >>> r3.at_T(200) | r4.at_T(200)
     1.01kΩ ± 1.02% (± 10.27Ω) [0.9955 .. 1.0160]kΩ @ 200°C
 
-The result of a voltage divider `R(resistance, tolerance=0.0, alpha_ppm=None).voltage_divider(other_resistor)` is a unitless factor (`Factor`):
+The result of a voltage divider
+`R(resistance, tolerance=0.0, alpha_ppm=None).voltage_divider(other_resistor)`
+is a unitless factor (`Factor`):
 
     >>> r1.voltage_divider(r2)
     0.27
