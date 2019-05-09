@@ -117,6 +117,42 @@ class ElectricalUnit:
     def __getitem__(self, ii):
         return [self.min, self.max][ii]
     
+    def __add__(self, other):
+        if isinstance(other, type(self)):
+            return type(self).from_min_max(
+                self.min + other.min,
+                self.max + other.max
+            )
+        
+        return self.min + other, self.max + other
+    
+    def __sub__(self, other):
+        if isinstance(other, type(self)):
+            return type(self).from_min_max(
+                self.min - other.max,
+                self.max - other.min
+            )
+
+        return self.min - other, self.max - other
+
+    def __mul__(self, other):
+        if type(other) not in self.mul_conversions:
+            return self.min * other, self.max * other
+        
+        return self.mul_conversions[type(other)].from_min_max(
+            self.min * other.min,
+            self.max * other.max
+        )
+    
+    def __truediv__(self, other):
+        if type(other) not in self.div_conversions:
+            return self.min / other, self.max / other
+        
+        return self.div_conversions[type(other)].from_min_max(
+            self.min / other.max,
+            self.max / other.min
+        )
+    
 
 class Factor(ElectricalUnit):
     '''A factor is used for unit-less results of calculations using U, R, I, etc.
@@ -155,7 +191,14 @@ class Factor(ElectricalUnit):
                 self.min / other.max,
                 self.max / other.min
             )
+    
+    def __add__(self, other):
+        # adding factors does not make sense
+        pass
 
+    def __sub__(self, other):
+        # subtracting factors does not make sense
+        pass
 
 class R(ElectricalUnit):
 
@@ -207,6 +250,11 @@ class R(ElectricalUnit):
         r = R.from_min_max(r_min, r_max)
         r._temp = self._temp if self._temp == other._temp else None
         return r
+
+    def __sub__(self, other):
+        # overwrite the parent classes' subtracting method - it does not make
+        # sense for resistors
+        pass
 
     def __or__(self, other):
         r_min, r_max = (
@@ -283,135 +331,67 @@ class U(ElectricalUnit):
 
     def __init__(self, voltage, tolerance=0.0):
         super(U, self).__init__(voltage, tolerance, 'V')
+
+        # unit conversions when multiplying U with other units
+        self.mul_conversions = {
+            I: P,  # U * I = P
+            Factor: U  # U * f = U
+        }
+        # unit conversions when dividing U with other units
+        self.div_conversions = {
+            R: I,  # U / R = I
+            I: R,  # U / I = R
+            U: Factor,  # U / U = Factor
+            Factor: U,  # U / Factor = U
+        }
     
     @classmethod
     def from_min_max(cls, _min, _max):
         v_nom, v_tol = min_max_to_nom_tol(_min, _max)
         return cls(v_nom, v_tol)
-    
-    def __add__(self, other):
-        if isinstance(other, U):
-            return U.from_min_max(
-                self.min + other.min,
-                self.max + other.max
-            )
-        
-        return (self.min + other, self.max + other,)
-    
-    def __sub__(self, other):
-        if isinstance(other, U):
-            return U.from_min_max(
-                self.min - other.max,
-                self.max - other.min
-            )
-        
-        return (self.min - other, self.max - other,)
-
-    def __truediv__(self, other):
-        _min = self.min / other.max  # min. value
-        _max = self.max / other.min  # max. value
-
-        if isinstance(other, R):  # U / R = I
-            return I.from_min_max(_min, _max)
-        
-        if isinstance(other, I):  # U / I = R
-            return R.from_min_max(_min, _max)
-        
-        if isinstance(other, U):  # U / U = Factor
-            return Factor.from_min_max(_min, _max)
-        
-        if isinstance(other, Factor):  # U / Factor = U
-            return U.from_min_max(_min, _max)
-        
-        return self.min / other, self.max / other
-
-    def __mul__(self, other):
-        _min = self.min * other.min  # min. value
-        _max = self.max * other.max  # max. value
-
-        if isinstance(other, I):
-            return P.from_min_max(_min, _max)
-        
-        if isinstance(other, Factor):
-            return U.from_min_max(_min, _max)
-        
-        return self.min / other, self.max / other
 
 
 class I(ElectricalUnit):
 
     def __init__(self, current, tolerance=0.0):
         super(I, self).__init__(current, tolerance, 'A')
+
+        # unit conversions when multiplying I with other units
+        self.mul_conversions = {
+            R: U,  # I * R = U
+            U: P,  # I * U = P
+            Factor: I  # I * f = I
+        }
+         # unit conversions when dividing I with other units
+        self.div_conversions = {
+            I: Factor,  # I / I = Factor
+            Factor: I,  # I / Factor = I
+        }
     
     @classmethod
     def from_min_max(cls, i_min, i_max):
         i_nom, i_tol = min_max_to_nom_tol(i_min, i_max)
         return cls(i_nom, i_tol)
-    
-    def __add__(self, other):
-        if isinstance(other, I):
-            return I.from_min_max(  # I + I = I
-                self.min + other.min,
-                self.max + other.max
-            )
-        
-        return self.min + other, self.max + other
-
-    def __mul__(self, other):
-        unit_conversions = {
-            R: U,  # I * R = U
-            U: P,  # I * U = P
-            Factor: I  # I * f = I
-        }
-
-        if type(other) not in unit_conversions:
-            return self.min * other, self.max * other
-        
-        return unit_conversions[type(other)].from_min_max(
-            self.min * other.min,
-            self.max * other.max
-        )
-        
-    def __truediv__(self, other):
-        if isinstance(other, I):  # I / I = Factor
-            return Factor.from_min_max(
-                self.min / other.max,
-                self.max / other.min
-            )
-
-        return self.min / other, self.max / other
 
 
 class P(ElectricalUnit):
 
     def __init__(self, current, tolerance=0.0):
         super(P, self).__init__(current, tolerance, 'W')
+
+        # unit conversions when multiplying U with other units
+        self.mul_conversions = {
+            Factor: P  # P * f = P
+        }
+        # unit conversions when dividing P with other units
+        self.div_conversions = {
+            U: I,  # P / U = I
+            I: U,  # P / I = U
+            P: Factor,  # P / P = f
+            Factor: P  # P / f = P
+        }
     
     @classmethod
     def from_min_max(cls, p_min, p_max):
         p_nom, p_tol = min_max_to_nom_tol(p_min, p_max)
         return cls(p_nom, p_tol)
-    
-    def __mul__(self, other):
-        if isinstance(other, Factor):
-            return P.from_min_max(
-                self.min * other.min,
-                self.max * other.max
-            )
-        
-        return self.min * other, self.max * other
-
-    def __truediv__(self, other):
-        _min = self.min / other.max
-        _max = self.max / other.min
-
-        if isinstance(other, U):  # P / U = I
-            return I.from_min_max(_min, _max)
-        
-        if isinstance(other, I):  # P / I = U
-            return U.from_min_max(_min, _max)
-        
-        if isinstance(other, P):  # P / P = Factor
-            return Factor.from_min_max(_min, _max)
-        
-        return self.min / other, self.max / other

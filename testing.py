@@ -17,8 +17,19 @@ class TestElectricalUnit(unittest.TestCase):
             self.assertEqual(eu.min, v_min)
             self.assertEqual(eu.value, v_nom)
             self.assertEqual(eu.max, v_max)
+    
+    def test_operators(self):
+        selected_examples = [
+            (U(2.5) + U(2.5), 5.0),
+            (U(10) - U(5), 5.0),
+            (I(2.5) + I(2.5), 5.0),
+            (I(10) - I(5), 5.0),
+            (P(2.5) + P(2.5), 5.0),
+            (P(10) - P(5), 5.0),
+        ]
 
-class TestVoltages(unittest.TestCase):
+        for U_op, expected in selected_examples:
+            self.assertEqual(U_op.value, expected)
 
     def test_repr(self):
         r = R(1e3, 0.01, 200).at_T(100) + R(2e3, 0.01, 150)
@@ -30,17 +41,8 @@ class TestVoltages(unittest.TestCase):
             (r, '3.02kΩ ± 1.0% (± 30.16Ω) [2.9858 .. 3.0462]kΩ @ mixed temp.')
         ]
 
-        for U_repr, expected in selected_examples:
-            self.assertEqual(str(U_repr), expected)
-    
-    def test_operators(self):
-        selected_examples = [
-            (U(2.5) + U(2.5), 5.0),
-            (U(10) - U(5), 5.0)
-        ]
-
-        for U_op, expected in selected_examples:
-            self.assertEqual(U_op.value, expected)
+        for _repr, expected in selected_examples:
+            self.assertEqual(str(_repr), expected)
 
 
 class TestResistors(unittest.TestCase):
