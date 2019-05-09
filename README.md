@@ -8,7 +8,11 @@ special focus on handling tolerances.
 Installation
 ------------
 
-Eecalpy needs Python 3+, you can install it via pip:
+The ``eecalpy`` package is available on the Python Package Index (PyPI):
+
+[![pypi package](https://badge.fury.io/py/eecalpy.svg)](https://badge.fury.io/py/eecalpy)
+
+The package needs Python 3+, you can install it with:
 
     $ pip install eecalpy
 
