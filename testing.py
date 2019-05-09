@@ -21,11 +21,13 @@ class TestElectricalUnit(unittest.TestCase):
 class TestVoltages(unittest.TestCase):
 
     def test_repr(self):
+        r = R(1e3, 0.01, 200).at_T(100) + R(2e3, 0.01, 150)
         selected_examples = [
             (U(3), '3.0V'),
             (U(-12.3), '-12.3V'),
             (U(818e3), '818.0kV'),
-            (U(200e-3, 0.1), '200.0mV ± 10.0% (± 20.0mV) [180.0000 .. 220.0000]mV')
+            (U(200e-3, 0.1), '200.0mV ± 10.0% (± 20.0mV) [180.0000 .. 220.0000]mV'),
+            (r, '3.02kΩ ± 1.0% (± 30.16Ω) [2.9858 .. 3.0462]kΩ @ mixed temp.')
         ]
 
         for U_repr, expected in selected_examples:
@@ -39,6 +41,56 @@ class TestVoltages(unittest.TestCase):
 
         for U_op, expected in selected_examples:
             self.assertEqual(U_op.value, expected)
+
+
+class TestResistors(unittest.TestCase):
+    r1 = R(1e3, 0.01, 200)
+    r2 = R(2e3, 0.01, 150)
+
+    def test_same_temperatures(self):
+        r = self.r1 + self.r2
+        self.assertEqual(r.temperature, 20.0)
+
+        r = self.r1 | self.r2
+        self.assertEqual(r.temperature, 20.0)
+
+        r = self.r1.at_T(100) + self.r2.at_T(100)
+        self.assertEqual(r.temperature, 100.0)
+
+        r = self.r1.at_T(100) | self.r2.at_T(100)
+        self.assertEqual(r.temperature, 100.0)
+
+    def test_temp_and_factors(self):
+        r = self.r1.at_T(100) * Factor(2.0)
+        self.assertEqual(r.temperature, 100.0)
+
+        r = Factor(2.0) * self.r1.at_T(100)
+        self.assertEqual(r.temperature, 100.0)
+
+        r = self.r1 * Factor(2.0)
+        self.assertEqual(r.temperature, 20.0)
+
+        r = Factor(2.0) * self.r1
+        self.assertEqual(r.temperature, 20.0)
+
+        r = self.r1.at_T(100) * Factor(2.0)
+        self.assertEqual(r.temperature, 100.0)
+
+        r = Factor(2.0) * self.r1.at_T(100)
+        self.assertEqual(r.temperature, 100.0)
+
+    def test_different_temperatures(self):
+        r = self.r1 + self.r2.at_T(100)
+        self.assertIsNone(r.temperature)
+
+        r = self.r1 | self.r2.at_T(100)
+        self.assertIsNone(r.temperature)
+
+        r = self.r1.at_T(100) + self.r2.at_T(60)
+        self.assertIsNone(r.temperature)
+
+        r = self.r1.at_T(60) | self.r2.at_T(100)
+        self.assertIsNone(r.temperature)
 
 
 class TestTypeConversions(unittest.TestCase):

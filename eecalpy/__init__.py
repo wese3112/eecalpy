@@ -101,7 +101,10 @@ class ElectricalUnit:
             )  # e.g. '[0.9900 .. 1.0100]kΩ'
 
         if isinstance(self, R):
-            repr_str.append(f'@ {self._temp:d}°C')  # e.g. '@ 20°C'
+            if self._temp is None:
+                repr_str.append(f'@ mixed temp.')
+            else:
+                repr_str.append(f'@ {self._temp:d}°C')  # e.g. '@ 20°C'
 
             if self.alpha_ppm is not None:
                 repr_str.append(f'α={self.alpha_ppm}ppm')  # e.g. 'α=100ppm'
@@ -133,10 +136,18 @@ class Factor(ElectricalUnit):
         if not any([isinstance(other, eu) for eu in (U, R, I, P, Factor)]):
             return self.min * other, self.max * other
         
-        return type(other).from_min_max(
-            self.min * other.min,
-            self.max * other.max
-        )
+        if isinstance(other, R):
+            r = R.from_min_max(
+                self.min * other.min,
+                self.max * other.max
+            )
+            r._temp = other.temperature
+            return r
+        else:
+            return type(other).from_min_max(
+                self.min * other.min,
+                self.max * other.max
+            )
     
     def __truediv__(self, other):
         if isinstance(other, Factor):
@@ -188,47 +199,41 @@ class R(ElectricalUnit):
         return self.at_temperature(temperature)
     
     def __add__(self, other):
-        temp_err_msg = 'The resistors must be at the same temperature'
-        assert self.temperature == other.temperature, temp_err_msg
-
         r_min, r_max = (
             a + b
             for a, b
             in zip([self.min, self.max], [other.min, other.max])
         )
         r = R.from_min_max(r_min, r_max)
-        r._temp = self.temperature
+        r._temp = self._temp if self._temp == other._temp else None
         return r
 
     def __or__(self, other):
-        temp_err_msg = 'The resistors must be at the same temperature'
-        assert self.temperature == other.temperature, temp_err_msg
-
         r_min, r_max = (
             a * b / (a + b)
             for a, b
             in zip([self.min, self.max], [other.min, other.max])
         )
         r = R.from_min_max(r_min, r_max)
-        r._temp = self.temperature
+        r._temp = self._temp if self._temp == other._temp else None
         return r
     
     def __truediv__(self, other):
         if isinstance(other, R):  # R / R = Factor
-            temp_err_msg = 'The resistors must be at the same temperature'
-            assert self.temperature == other.temperature, temp_err_msg
-
             return Factor.from_min_max(
-                self.min / other.max,  # min. value
-                self.max / other.min  # max. value
+                self.min / other.max,
+                self.max / other.min
             )
         
         if isinstance(other, Factor):
-            other_min = min(other)
-            other_max = max(other)
-            return R.from_min_max(
-                self.min
+            # other_min = min(other)
+            # other_max = max(other)
+            r = R.from_min_max(
+                self.min / other.max,
+                self.max / other.min
             )
+            r._temp = self._temp if self._temp == other._temp else None
+            return r
 
         return (self.min / other, self.max / other)
     
@@ -240,10 +245,12 @@ class R(ElectricalUnit):
             )
         
         if isinstance(other, Factor):
-            return R.from_min_max(
+            r = R.from_min_max(
                 self.min * other.min,
                 self.max * other.max
             )
+            r._temp = self.temperature
+            return r
         
         r = R.from_min_max(self.min * other, self.max * other, self.alpha_ppm)
         r._temp = self._temp
