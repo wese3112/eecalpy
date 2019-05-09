@@ -6,6 +6,17 @@ from eecalpy import *
 
 class TestElectricalUnit(unittest.TestCase):
     
+    def test_classmethod_fmm(self):
+        for unit in (U, R, I, P, Factor):
+            eu = unit.from_min_max(1, 3)
+            self.assertIsInstance(eu, unit)
+            self.assertEqual(eu.min, 1)
+            self.assertEqual(eu.value, 2)
+            self.assertEqual(eu.max, 3)
+        
+        r = R.from_min_max(1, 3, 200)
+        self.assertEqual(r.alpha_ppm, 200)
+
     def test_tolerance(self):
         selected_examples = [
             (U(10, 0.1), 9.0, 10.0, 11.0),

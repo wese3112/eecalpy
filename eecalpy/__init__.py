@@ -48,7 +48,11 @@ class ElectricalUnit:
             value * (1 + tolerance)
         )
         self._min, self._max = min(limits), max(limits)
-        # self._temp = 20  # inital temperature (only applies to resistors)
+
+    @classmethod
+    def from_min_max(cls, _min, _max):
+        nom, tol = min_max_to_nom_tol(_min, _max)
+        return cls(nom, tol)
 
     @property
     def min(self):
@@ -163,11 +167,6 @@ class Factor(ElectricalUnit):
     def __init__(self, factor, tolerance=0.0):
         super(Factor, self).__init__(factor, tolerance, '')
     
-    @classmethod
-    def from_min_max(cls, f_min, f_max):
-        f_nom, f_tol = min_max_to_nom_tol(f_min, f_max)
-        return cls(f_nom, f_tol)
-    
     def __mul__(self, other):
         if not any([isinstance(other, eu) for eu in (U, R, I, P, Factor)]):
             return self.min * other, self.max * other
@@ -199,6 +198,7 @@ class Factor(ElectricalUnit):
     def __sub__(self, other):
         # subtracting factors does not make sense
         pass
+
 
 class R(ElectricalUnit):
 
@@ -344,11 +344,6 @@ class U(ElectricalUnit):
             U: Factor,  # U / U = Factor
             Factor: U,  # U / Factor = U
         }
-    
-    @classmethod
-    def from_min_max(cls, _min, _max):
-        v_nom, v_tol = min_max_to_nom_tol(_min, _max)
-        return cls(v_nom, v_tol)
 
 
 class I(ElectricalUnit):
@@ -367,11 +362,6 @@ class I(ElectricalUnit):
             I: Factor,  # I / I = Factor
             Factor: I,  # I / Factor = I
         }
-    
-    @classmethod
-    def from_min_max(cls, i_min, i_max):
-        i_nom, i_tol = min_max_to_nom_tol(i_min, i_max)
-        return cls(i_nom, i_tol)
 
 
 class P(ElectricalUnit):
@@ -390,8 +380,3 @@ class P(ElectricalUnit):
             P: Factor,  # P / P = f
             Factor: P  # P / f = P
         }
-    
-    @classmethod
-    def from_min_max(cls, p_min, p_max):
-        p_nom, p_tol = min_max_to_nom_tol(p_min, p_max)
-        return cls(p_nom, p_tol)
