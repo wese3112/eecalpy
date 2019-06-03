@@ -29,6 +29,10 @@ class TestElectricalUnit(unittest.TestCase):
             self.assertEqual(eu.value, v_nom)
             self.assertEqual(eu.max, v_max)
     
+    def test_tolerance_sign(self):
+        r = R.from_min_max(3, 2)
+        self.assertEqual(r.tolerance, 0.2)
+
     def test_operators(self):
         selected_examples = [
             (U(2.5) + U(2.5), 5.0),

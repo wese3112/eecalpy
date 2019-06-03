@@ -10,7 +10,7 @@ def min_max_to_nom_tol(min_value, max_value):
     value as a tuple.
     '''
     nominal = (min_value + max_value) / 2
-    tolerance = (max_value - nominal) / nominal
+    tolerance = abs((max_value - nominal) / nominal)
     return nominal, tolerance
 
 def unit_factor_and_prefix(value):
@@ -283,7 +283,7 @@ class R(ElectricalUnit):
             r._temp = self._temp if self._temp == other._temp else None
             return r
 
-        return (self.min / other, self.max / other)
+        return self.min / other, self.max / other
     
     def __mul__(self, other):
         if isinstance(other, I):  # R * I = U
@@ -357,7 +357,7 @@ class I(ElectricalUnit):
             U: P,  # I * U = P
             Factor: I  # I * f = I
         }
-         # unit conversions when dividing I with other units
+        # unit conversions when dividing I with other units
         self.div_conversions = {
             I: Factor,  # I / I = Factor
             Factor: I,  # I / Factor = I
