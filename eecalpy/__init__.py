@@ -393,7 +393,7 @@ class P(ElectricalUnit):
 class Usq(ElectricalUnit):
 
     def __init__(self, current, tolerance=0.0):
-        super(Usq, self).__init__(current, tolerance, 'U²')
+        super(Usq, self).__init__(current, tolerance, 'V²')
 
         # unit conversions when multiplying U with other units
         self.mul_conversions = {
