@@ -348,7 +348,7 @@ class U(ElectricalUnit):
     
     def __pow__(self, other):
         assert other == 2, 'voltages can only be squared using U(..)**2'
-        return U.from_min_max(self.min**2, self.max**2)
+        return Usq.from_min_max(self.min**2, self.max**2)
 
 
 class I(ElectricalUnit):
@@ -371,7 +371,7 @@ class I(ElectricalUnit):
     
     def __pow__(self, other):
         assert other == 2, 'currents can only be squared using I(..)**2'
-        return I.from_min_max(self.min**2, self.max**2)
+        return Isq.from_min_max(self.min**2, self.max**2)
 
 class P(ElectricalUnit):
 
