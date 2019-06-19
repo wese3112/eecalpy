@@ -335,6 +335,7 @@ class U(ElectricalUnit):
         # unit conversions when multiplying U with other units
         self.mul_conversions = {
             I: P,  # U * I = P
+            U: Usq,  # U * U = U²
             Factor: U  # U * f = U
         }
         # unit conversions when dividing U with other units
@@ -344,6 +345,10 @@ class U(ElectricalUnit):
             U: Factor,  # U / U = Factor
             Factor: U,  # U / Factor = U
         }
+    
+    def __pow__(self, other):
+        assert other == 2, 'voltages can only be squared using U(..)**2'
+        return U.from_min_max(self.min**2, self.max**2)
 
 
 class I(ElectricalUnit):
@@ -354,6 +359,7 @@ class I(ElectricalUnit):
         # unit conversions when multiplying I with other units
         self.mul_conversions = {
             R: U,  # I * R = U
+            I: Isq,  # I * I = I²
             U: P,  # I * U = P
             Factor: I  # I * f = I
         }
@@ -362,7 +368,10 @@ class I(ElectricalUnit):
             I: Factor,  # I / I = Factor
             Factor: I,  # I / Factor = I
         }
-
+    
+    def __pow__(self, other):
+        assert other == 2, 'currents can only be squared using I(..)**2'
+        return I.from_min_max(self.min**2, self.max**2)
 
 class P(ElectricalUnit):
 
@@ -379,4 +388,39 @@ class P(ElectricalUnit):
             I: U,  # P / I = U
             P: Factor,  # P / P = f
             Factor: P  # P / f = P
+        }
+
+class Usq(ElectricalUnit):
+
+    def __init__(self, current, tolerance=0.0):
+        super(Usq, self).__init__(current, tolerance, 'U²')
+
+        # unit conversions when multiplying U with other units
+        self.mul_conversions = {
+            Factor: Usq  # U² * f = U²
+        }
+        # unit conversions when dividing P with other units
+        self.div_conversions = {
+            R: P,  # U² / R = P
+            P: R,  # U² / I = U
+            U: U,  # U² / U = U
+            Usq: Factor,  # U² / U² = f
+            Factor: Usq  # U² / f = U²
+        }
+
+class Isq(ElectricalUnit):
+
+    def __init__(self, current, tolerance=0.0):
+        super(Isq, self).__init__(current, tolerance, 'A²')
+
+        # unit conversions when multiplying U with other units
+        self.mul_conversions = {
+            Factor: Isq,  # I² * f = I²
+            R: P  # I² * R = P
+        }
+        # unit conversions when dividing P with other units
+        self.div_conversions = {
+            I: I,  # I² / I = I
+            Isq: Factor,  # I² / I² = f
+            Factor: Isq  # I² / f = I²
         }
