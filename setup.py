@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(name='eecalpy',
-      version='0.8.0',
+      version='0.8.2',
       description='collection of classes for simple to complex electrical calculations',
       long_description=long_description,
       url='http://github.com/wese3112/eecalpy.git',

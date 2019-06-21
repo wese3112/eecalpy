@@ -1,12 +1,10 @@
-eecalpy Python module
-=====================
+# eecalpy Python module
 
 The *Electrical Engineering Calculations for Python* module is a
 collection of classes for simple to complex electrical calculations, with a
 special focus on handling tolerances.
 
-Installation
-------------
+## Installation
 
 The ``eecalpy`` package is available on the Python Package Index (PyPI):
 
@@ -16,79 +14,142 @@ The package needs Python 3+, you can install it with:
 
     $ pip install eecalpy
 
-Introduction
-------------
 
-The available units are:
+## Introduction
+
+Check out the voltage divider below. For both resistors their tolerance and the
+temperature coefficient α are given (α in parts per million). 
+
+![Simple voltage divider](img/vdiv.png?raw=true "voltage divider")
+
+Let's create two variables for them.
+
+    >>> r1 = R(resistance=1000, tolerance=0.05, alpha_ppm=250)
+    >>> r2 = R(2e3, 0.01, 100)
+    >>> r1; r2
+    1.0kΩ ± 5.0% (± 50.0Ω) [0.9500 .. 1.0500]kΩ @ 20°C α=250ppm
+    2.0kΩ ± 1.0% (± 20.0Ω) [1.9800 .. 2.0200]kΩ @ 20°C α=100ppm
+
+The formula for the voltage divider factor is:
+
+    >>> r1 / (r1 + r2)
+    0.33 ± 7.32% [0.3094 .. 0.3584]
+
+You can also use a shorthand notation:
+
+    >>> r1 // r2  # or even r1.voltage_divider(r2)
+    0.33 ± 4.0% [0.3199 .. 0.3465]
+
+The result above is an instance of the `Factor` class. Now only the voltage is missing. These are created using `U(voltage, tolerance=0.0)`.
+Let's assume the input voltage is 24V with a 1% tolerance the output voltage of the voltage divider then is:
+
+    >>> vin = U(24, 0.01)
+    >>> vout = r1 / (r1 + r2) * vin
+    >>> vout
+    8.02V ± 8.32% (± 667.12mV) [7.3524 .. 8.6867]V
+
+For demonstration, let's calculate some of the voltage divider parameters.
+
+Current through `R1` and `R2` (to GND):
+
+    >>> vin / (r1 + r2)
+    8.01mA ± 3.33% (± 266.81µA) [7.7394 .. 8.2730]mA
+
+Power dissipation of the resistors:
+
+    >>> vout**2 / r1
+    65.46mW ± 21.35% (± 13.97mW) [51.4842 .. 79.4301]mW
+    >>> (vin - vout)**2 / r2
+    128.26mW ± 12.3% (± 15.78mW) [112.4776 .. 144.0351]mW
+
+Let's also see how `vout` changes when the ambient temperature is 200°C:
+
+    >>> r1.at_T(200) // r2.at_T(200) * vin
+    8.14V ± 4.97% (± 404.16mV) [7.7359 .. 8.5443]V
+
+`R.at_T(temperature)` is the same as `R.at_temperature(temperature)`. It returns a new resistor object at the given temperature (in °C).
+
+You can of course also use perfect values, so without the tolerance and temperature coefficient:
+
+    >>> r1 = R(1e3)
+    >>> r2 = R(2e3)
+    >>> vin = U(24)
+    >>> r1; r2; vin
+    1.0kΩ @ 20°C
+    2.0kΩ @ 20°C
+    24.0V
+    >>> vout = r1 / (r1 + r2) * vin
+    >>> vout
+    8.0V
+
+By the way, you can get the series resistance using `+` and the parallel resistance using `|`:
+
+    >>> r1 + r2
+    3.0kΩ @ 20°C
+    >>> r1 | r2
+    666.67Ω @ 20°C
+    >>> r1 | (R(5e3) + R(3e3)) | r2  # complex statements allowed!
+    615.38Ω @ 20°C
+
+## Classes
+
+The available classes are:
 
 * Voltage `U(voltage, tolerance=0.0)`
 * Resistance `R(resistance, tolerance=0.0, alpha_ppm=None)`
 * Current `I(current, tolerance=0.0)`
 * Power `P(power, tolerance=0.0)`
 * Factor `Factor(factor, tolerance)` (unitless factor, example below)
+* squared Voltage (V²) `Usq(voltage, tolerance=0.0)`
+* squared Current (A²) `Isq(voltage, tolerance=0.0)`
 
-A very simple start would be a perfect 5V voltage:
+All classes do have the following members (example when using a voltage):
 
-    >>> U(5)
-    5.0V
+    >>> v1 = U(24, 0.04)
+    >>> v1
+    24.0V ± 4.0% (± 960.0mV) [23.0400 .. 24.9600]V
+    >>> v1.value
+    24
+    >>> v1.min
+    23.04
+    >>> v1.max
+    24.96
+    >>> v1.unit
+    'V'
 
-A 3.3mA current with a 1% tolerance is defined and printed like this:
+A unit can also be created using the `.from_min_max(min, max)` classmethod when the lower and upper limit is known (min/max):
 
-    >>> I(3.3e-6, 0.01)
-    3.3µA ± 1.0% (± 33.0nA) [3.2670 .. 3.3330]µA
+    >>> P.from_min_max(3, 4)
+    3.5W ± 14.29% (± 500.0mW) [3.0000 .. 4.0000]W
 
-Resistors have an optional parameter `alpha_ppm` which is the temperature 
-coefficient α in parts per million (ppm). If it is defined, you can get the
-resistors' resistance at a different temperature:
+All units feature the add, subtract, multiply and divide operators. The calculation only works if the result's type is one of the classes above:
 
-    >>> r1 = R(1e3, 0.01, 200)
-    >>> r1
-    1.0kΩ ± 1.0% (± 10.0Ω) [0.9900 .. 1.0100]kΩ @ 20°C α=200ppm
-    >>> r1.at_temperature(250)  # short cut is r1.at_T(250)
-    1.05kΩ ± 1.0% (± 10.46Ω) [1.0355 .. 1.0565]kΩ @ 250°C α=200ppm
+This works because the result type is one of the known classes:
 
-The series or parallel resistance of two or more resistors can be calculated
-using `+` and `|`:
-
-    >>> r1 + r2
-    3.7kΩ @ 20°C
-    >>> r1 | r2
-    729.73Ω @ 20°C
-    >>> r3 = R(1e3, 0.01, 150)
-    >>> r4 = R(47e3, 0.02, 200)
-    >>> r3 | r4
-    979.16Ω ± 1.02% (± 10.0Ω) [969.1690 .. 989.1604]Ω @ 20°C
-    >>> R(12e3) | (r1 + r2) | r1
-    738.77Ω @ 20°C
-    >>> r3.at_T(200) | r4.at_T(200)
-    1.01kΩ ± 1.02% (± 10.27Ω) [0.9955 .. 1.0160]kΩ @ 200°C
-
-The result of a voltage divider
-`R(resistance, tolerance=0.0, alpha_ppm=None).voltage_divider(other_resistor)`
-is a unitless factor (`Factor`):
-
-    >>> r1.voltage_divider(r2)
-    0.27
-    >>> r3.voltage_divider(r4)
-    0.02 ± 2.94% [0.0202 .. 0.0215]
-    >>> r3 // r4  # short-cut for voltage divider
-    0.02 ± 2.94% [0.0202 .. 0.0215]
-    >>> U(24) * (r3 // r4)  # output voltage, when input voltage is 24V
-    500.28mV ± 2.94% (± 14.69mV) [485.5917 .. 514.9777]mV
-
-Factors are also the result when dividing two variables of the same unit
-
-    >>> f = I(1) / I(2)
-    >>> type(f)
-    <class '__main__.Factor'>
-    >>> I(100e-3, 0.01) / I(22e-6, 0.2)
-    4744.32 ± 20.96% [3750.0000 .. 5738.6364]
-
-And of course all the standard *U = R * I* stuff works:
-
-    >>> R(12e3, 0.01) * I(1e-6, 0.02)
-    12.0mV ± 3.0% (± 360.0µV) [11.6424 .. 12.3624]mV
-    >>> U(5.0) / I(1e-3)
+    >>> U(10) + U(20)
+    30.0V
+    >>> I(2e-3) - I(10e-3)
+    -8.0mA
+    >>> U(10) * I(2e-3)
+    20.0mW
+    >>> U(10) / I(2e-3)
     5.0kΩ @ 20°C
-    >>> U(3.3) * I(10e-3)
-    33.0mW
+    >>> U(10) * Factor(2)
+    20.0V
+    >>> I(10e-3) * R(150)
+    1.5V
+    >>> P(200) / U(5)
+    40.0A
+    >>> U(3) * U(3)
+    9.0V²
+    >>> U(3)**2  # U squared
+    9.0V²
+    >>> U(3)**2 / R(1e3)
+    9.0mW
+
+This does not work because voltage divided by power is not a known class:
+
+    >>> U / P
+    Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    TypeError: unsupported operand type(s) for /: 'type' and 'type'
