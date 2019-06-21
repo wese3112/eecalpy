@@ -206,7 +206,7 @@ class R(ElectricalUnit):
         assert resistance > 0, 'resistance must be > 0'
         super(R, self).__init__(resistance, tolerance, 'Ω')
         
-        self._alpha_ppm = alpha_ppm  # temperature coefficient in ppm
+        self._alpha_ppm = int(alpha_ppm)  # temperature coefficient in ppm
         self._temp = 20  # 20°C is the initial temperature for all resistors
         self._r_t20 = resistance  # resistance at 20°C
     
