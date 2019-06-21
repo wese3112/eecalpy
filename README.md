@@ -30,23 +30,35 @@ Let's create two variables for them.
     1.0kΩ ± 5.0% (± 50.0Ω) [0.9500 .. 1.0500]kΩ @ 20°C α=250ppm
     2.0kΩ ± 1.0% (± 20.0Ω) [1.9800 .. 2.0200]kΩ @ 20°C α=100ppm
 
-The formula for the voltage divider factor is:
+The formula for the voltage divider factor is `r1 / (r1 + r2)`. To calculate it use `R.voltage_divider(other_resistor)`:
 
-    >>> r1 / (r1 + r2)
-    0.33 ± 7.32% [0.3094 .. 0.3584]
-
+    >>> r1.voltage_divider(r2)
+    0.33 ± 4.0% [0.3199 .. 0.3465]
+    
 You can also use a shorthand notation:
 
-    >>> r1 // r2  # or even r1.voltage_divider(r2)
+    >>> r1 // r2
     0.33 ± 4.0% [0.3199 .. 0.3465]
 
-The result above is an instance of the `Factor` class. Now only the voltage is missing. These are created using `U(voltage, tolerance=0.0)`.
-Let's assume the input voltage is 24V with a 1% tolerance the output voltage of the voltage divider then is:
+Attention: Do not use the statement `r1 / (r1 + r2)` here, because it would use the tolerance limits
+of `r1` twice (addition and division) and therefore yield a false result.
+
+The result above is an instance of the `Factor` class. Now only the voltage is missing.
+These are created using `U(voltage, tolerance=0.0)`.
+
+
+Let's assume the input voltage is 24V with a 1% tolerance the output voltage of the
+voltage divider then is:
 
     >>> vin = U(24, 0.01)
-    >>> vout = r1 / (r1 + r2) * vin
+    >>> vout = r1 // r2 * vin
     >>> vout
-    8.02V ± 8.32% (± 667.12mV) [7.3524 .. 8.6867]V
+    8.0V ± 5.0% (± 400.0mV) [7.6000 .. 8.4000]V
+
+Note: the statement `vout = vin * r1 // r2` does not work. It's evaluated from left to right, so python first tries `vin * r1` which is not implemented (voltage times resistance), but you can always use parenthesis:
+
+    >>> vin * (r1 // r2)
+    8.0V ± 5.0% (± 400.0mV) [7.6000 .. 8.4000]V
 
 For demonstration, let's calculate some of the voltage divider parameters.
 
@@ -67,9 +79,11 @@ Let's also see how `vout` changes when the ambient temperature is 200°C:
     >>> r1.at_T(200) // r2.at_T(200) * vin
     8.14V ± 4.97% (± 404.16mV) [7.7359 .. 8.5443]V
 
-`R.at_T(temperature)` is the same as `R.at_temperature(temperature)`. It returns a new resistor object at the given temperature (in °C).
+`R.at_T(temperature)` is the same as `R.at_temperature(temperature)`.
+It returns a new resistor object at the given temperature (in °C).
 
-You can of course also use perfect values, so without the tolerance and temperature coefficient:
+You can of course also use perfect values, so without the tolerance and
+temperature coefficient:
 
     >>> r1 = R(1e3)
     >>> r2 = R(2e3)
@@ -82,7 +96,8 @@ You can of course also use perfect values, so without the tolerance and temperat
     >>> vout
     8.0V
 
-By the way, you can get the series resistance using `+` and the parallel resistance using `|`:
+By the way, you can get the series resistance using `+` and the parallel
+resistance using `|`:
 
     >>> r1 + r2
     3.0kΩ @ 20°C
@@ -117,12 +132,14 @@ All classes do have the following members (example when using a voltage):
     >>> v1.unit
     'V'
 
-A unit can also be created using the `.from_min_max(min, max)` classmethod when the lower and upper limit is known (min/max):
+A unit can also be created using the `.from_min_max(min, max)` classmethod when
+the lower and upper limit is known (min/max):
 
     >>> P.from_min_max(3, 4)
     3.5W ± 14.29% (± 500.0mW) [3.0000 .. 4.0000]W
 
-All units feature the add, subtract, multiply and divide operators. The calculation only works if the result's type is one of the classes above:
+All units feature the add, subtract, multiply and divide operators. The calculation
+only works if the result's type is one of the classes above:
 
 This works because the result type is one of the known classes:
 
