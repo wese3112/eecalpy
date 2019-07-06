@@ -107,7 +107,7 @@ class ElectricalUnit:
             if vrange:
                 parts.append(self._vrange_repr())
         
-        if isinstance(self, R):
+        if temperature and isinstance(self, R):
             parts.append(self._temperature_repr())
         
         return ' '.join(parts)

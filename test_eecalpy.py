@@ -43,6 +43,25 @@ def test_operators():
     for U_op, expected in selected_examples:
         assert U_op.value == expected
 
+def test_pretty():
+    i1 = I(12e-6, 0.05)
+    assert str(i1) == i1.pretty()
+    assert i1.pretty() == '12.0µA ± 5.0% (± 600.0nA) [11.4000 .. 12.6000]µA'
+    assert i1.pretty(variation=False) == '12.0µA ± 5.0% [11.4000 .. 12.6000]µA'
+    assert i1.pretty(vrange=False) == '12.0µA ± 5.0% (± 600.0nA)'
+    assert i1.pretty(variation=False, vrange=False) == '12.0µA ± 5.0%'
+    assert i1.pretty(tolerance=False, variation=False, vrange=False) == '12.0µA'
+    assert i1.pretty(value=False, tolerance=False, variation=False, vrange=False) == ''
+    assert i1.pretty(value=False, variation=False, vrange=False) == '± 5.0%'
+    assert i1.pretty(value=False, variation=False) == '± 5.0% [11.4000 .. 12.6000]µA'
+    assert i1.pretty(value=False) == '± 5.0% (± 600.0nA) [11.4000 .. 12.6000]µA'
+
+    r1 = R(8.5e3, 0.01, 200)
+    assert r1.pretty() == '8.5kΩ ± 1.0% (± 85.0Ω) [8.4150 .. 8.5850]kΩ @ 20°C α=200ppm'
+    assert r1.pretty(temperature=False) == '8.5kΩ ± 1.0% (± 85.0Ω) [8.4150 .. 8.5850]kΩ'
+    assert r1.pretty(tolerance=False, temperature=False) == '8.5kΩ'
+    assert r1.pretty(value=False, temperature=False) == '± 1.0% (± 85.0Ω) [8.4150 .. 8.5850]kΩ'
+    
 def test_repr():
     r = R(1e3, 0.01, 200).at_T(100) + R(2e3, 0.01, 150)
     selected_examples = [
