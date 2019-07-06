@@ -53,7 +53,9 @@ class TestElectricalUnit(unittest.TestCase):
             (U(-12.3), '-12.3V'),
             (U(818e3), '818.0kV'),
             (U(200e-3, 0.1), '200.0mV ± 10.0% (± 20.0mV) [180.0000 .. 220.0000]mV'),
-            (r, '3.02kΩ ± 1.0% (± 30.16Ω) [2.9858 .. 3.0462]kΩ @ mixed temp.')
+            (r, '3.02kΩ ± 1.0% (± 30.16Ω) [2.9858 .. 3.0462]kΩ @ mixed temp.'),
+            (Factor(1.0, 0.01), '1.0 ± 1.0% [0.9900 .. 1.0100]'),
+            (Factor.from_min_max(2, 3), '2.5 ± 20.0% [2.0000 .. 3.0000]')
         ]
 
         for _repr, expected in selected_examples:

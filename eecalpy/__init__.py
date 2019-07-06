@@ -40,7 +40,7 @@ class ElectricalUnit:
     
     def __init__(self, value, tolerance=0.0, unit=''):
         self.value = value
-        self.tolerance = tolerance
+        self.tolerance = float(tolerance)
         
         self._unit = unit
         limits = (  # create to pick min/max value (value might be negative)
@@ -66,54 +66,54 @@ class ElectricalUnit:
     def unit(self):
         return self._unit
 
-    def __repr__(self):
-        # the return string repr_str is build as a list of strings and joined
-        # into the to a single sting when returning it.
+    def _value_repr(self):
+        factor, prefix = unit_factor_and_prefix(self.value)
 
-        # don't use unit prefixes (k, m, µ, ..) when what shall be printed is a
-        # Factor. Factors sould be printed as a normal floats.
-        if isinstance(self, Factor):
-            factor, prefix = 1, ''
+        return f'{round(self.value/factor, 2)}{prefix}{self.unit}'
+    
+    def _tolerance_repr(self):
+        return f'± {round(self.tolerance*100, 2)}%' if self.tolerance != 0.0 else ''
+
+    def _variation_repr(self):
+        # variation here is the ± value distance from the max/min value
+        # to the nominal value (there might be a better name for it...)
+        variation = (self.max - self.min) / 2
+        factor, prefix = unit_factor_and_prefix(variation) 
+
+        return f'(± {abs(round(variation/factor, 2))}{prefix}{self.unit})'
+
+    def _vrange_repr(self):
+        factor, prefix = unit_factor_and_prefix(self.value)
+
+        if self.min < self.max:
+            _min, _max = self.min/factor, self.max/factor
         else:
-            factor, prefix = unit_factor_and_prefix(self.value)
+            _min, _max = self.max/factor, self.min/factor
+
+        return f'[{_min:.4f} .. {_max:.4f}]{prefix}{self.unit}'
+    
+    def pretty(self, value=True, tolerance=True, variation=True, vrange=True, temperature=True):
+        parts = list()
+
+        if value:
+            parts.append(self._value_repr())
+
+        if tolerance and self.tolerance != 0.0:
+            parts.append(self._tolerance_repr())
+
+            if variation and not isinstance(self, Factor):
+                parts.append(self._variation_repr())
+
+            if vrange:
+                parts.append(self._vrange_repr())
         
-        # example for comments: R(1e3, 0.01, 100)
-        repr_str = [
-            f'{round(self.value/factor, 2)}{prefix}{self.unit}'
-        ]  # e.g. 1.00kΩ
-
-        if float(self.tolerance) != 0.0:
-            repr_str.append(
-                f'± {round(self.tolerance * 100, 2)}%'
-              )  # e.g. '± 1.00%'
-
-            if not isinstance(self, Factor):
-                # variation here is the ± value distance from the max/min value
-                # to the nominal value (there might be a better name for it...)
-                variation = (self.max - self.min) / 2
-                v_factor, v_prefix = unit_factor_and_prefix(variation) 
-                repr_str.append(
-                    f'(± {abs(round(variation/v_factor, 2))}{v_prefix}{self.unit})'
-                )  # e.g. '(± 10.0Ω)'
-
-            # this tuple is created to call min()/max() on it below in order to
-            # always print the value range as [<lower value> .. <upper value>]
-            # (a value might be negative)
-            limits = self.min/factor, self.max/factor
-            repr_str.append(
-                f'[{min(limits):.4f} .. {max(limits):.4f}]{prefix}{self.unit}'
-            )  # e.g. '[0.9900 .. 1.0100]kΩ'
-
         if isinstance(self, R):
-            if self._temp is None:
-                repr_str.append(f'@ mixed temp.')
-            else:
-                repr_str.append(f'@ {self._temp:d}°C')  # e.g. '@ 20°C'
+            parts.append(self._temperature_repr())
+        
+        return ' '.join(parts)
 
-            if self.alpha_ppm is not None:
-                repr_str.append(f'α={self.alpha_ppm}ppm')  # e.g. 'α=100ppm'
-
-        return ' '.join(repr_str)
+    def __repr__(self):
+        return self.pretty()
 
     def __len__(self):
         return 2  # lower and upper value
@@ -206,7 +206,8 @@ class R(ElectricalUnit):
         assert resistance > 0, 'resistance must be > 0'
         super(R, self).__init__(resistance, tolerance, 'Ω')
         
-        self._alpha_ppm = int(alpha_ppm)  # temperature coefficient in ppm
+        # temperature coefficient in ppm
+        self._alpha_ppm = int(alpha_ppm) if alpha_ppm is not None else None
         self._temp = 20  # 20°C is the initial temperature for all resistors
         self._r_t20 = resistance  # resistance at 20°C
     
@@ -222,6 +223,14 @@ class R(ElectricalUnit):
     @property
     def alpha_ppm(self):
         return self._alpha_ppm
+    
+    def _temperature_repr(self):
+        parts = ['@ mixed temp.' if self._temp is None else f'@ {self._temp:d}°C']
+
+        if self.alpha_ppm is not None:
+            parts.append(f'α={self.alpha_ppm}ppm')
+        
+        return ' '.join(parts)
 
     def at_temperature(self, temperature):
         err_msg = 'temperature coefficient alpha (R.alpha_ppm) not specified'
