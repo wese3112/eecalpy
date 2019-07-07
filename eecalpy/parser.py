@@ -6,7 +6,7 @@ from lark import Lark, Transformer, v_args, UnexpectedInput
 
 eecalpy_grammar = r'''
 ?start: sum
-        | name "=" sum    -> assign_var
+      | name "=" sum    -> assign_var
 
 ?sum: product
     | sum "+" product   -> add
@@ -20,8 +20,9 @@ eecalpy_grammar = r'''
     | atom "^2"         -> squared
 
 ?atom: eeinput
-        | name             -> var
-        | "(" sum ")"
+     | name          -> var
+     | "(" sum ")"
+
 
 // eecalpy
 ?eeinput: resistance
@@ -48,6 +49,7 @@ eeclass: eevalue unit
 %import common.SIGNED_NUMBER
 %import common.WS_INLINE
 %ignore WS_INLINE
+%ignore "?"
 '''
 
 @v_args(inline=True)
@@ -62,7 +64,7 @@ class EecalpyScriptTransformer(Transformer):
 
     def assign_var(self, name, value):
         self.vars[name] = value
-        return value
+        return name + ' = ' + str(value)
 
     def var(self, name):
         var = str(name)
@@ -130,16 +132,22 @@ eecalpy_script_parser = Lark(
     parser='lalr',
     transformer=EecalpyScriptTransformer()
 )
-eecal = eecalpy_script_parser.parse
+# eecal = eecalpy_script_parser.parse
 
 def _parse_line(line):
+    line = line.strip()
+    if line.startswith('#!'):
+        return '\n# ' + line[2:].strip()
     if line == '' or line.startswith('#'):
         return None
     if line.startswith("exit"):
         raise EOFError
 
+    line = line.replace(' ', '')
     try:
-        return eecal(line)
+        if line.find('?') > -1:
+            return line.replace('?', ' = ') + str(eecalpy_script_parser.parse(line))
+        return str(eecalpy_script_parser.parse(line))
     except KeyError as e:
         print(e)
     except UnexpectedInput as u:
@@ -155,8 +163,18 @@ def console():
         except EOFError:
             break
 
-def script(script_file):
-    with open(script_file, 'r') as script:
+def script(scr, print_output=True):
+    out = [_parse_line(l.strip()) for l in scr.split('\n')]
+    out = [str(o) for o in filter(lambda x: x, out)]
+    
+    if not print_output:
+        return '\n'.join(out)
+    
+    for line in out:
+        print(line)
+
+def script_file(scr_file):
+    with open(scr_file, 'r') as script:
         out = [_parse_line(l.strip()) for l in script.readlines()]
     
     return '\n'.join([str(o) for o in filter(lambda x: x, out)])
