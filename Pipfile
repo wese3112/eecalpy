@@ -8,6 +8,7 @@ pytest = "*"
 
 [packages]
 lark-parser = "*"
+sphinx = "*"
 
 [requires]
 python_version = "3.7"
