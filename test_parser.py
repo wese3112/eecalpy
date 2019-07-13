@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import pytest
 from eecalpy.electrical_units import *
-from eecalpy.parser import _parse_line, console, script
+from eecalpy.parser import _parse_line, ee_console, ee_script
 from lark import UnexpectedInput
 
 @pytest.mark.parametrize(
@@ -73,7 +73,7 @@ def test_script():
     with open('tmp.ee', 'w') as tmp:
         tmp.write(scr)
     
-    out = script('tmp.ee')
+    out = ee_script('tmp.ee')
     expected = '\n'.join([str(x) for x in [a, b, a+b, a|b]])
     
     assert out == expected
