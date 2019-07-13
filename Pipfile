@@ -5,10 +5,11 @@ verify_ssl = true
 
 [dev-packages]
 pytest = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
 
 [packages]
 lark-parser = "*"
-sphinx = "*"
 
 [requires]
 python_version = "3.7"
