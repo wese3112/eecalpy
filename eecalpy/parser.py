@@ -32,6 +32,7 @@ value: SIGNED_NUMBER
 prefix: /[pfnµmkGM]/
 unit: /[VAWf]/
 name: /[a-zA-Z][a-zA-Z_0-9]*/
+// temperature: "@" value "°C"
 
 tolerance: value "%"
 tempcoeff: value "ppm"
@@ -49,7 +50,7 @@ eeclass: eevalue unit
 %import common.SIGNED_NUMBER
 %import common.WS_INLINE
 %ignore WS_INLINE
-%ignore "?"
+// %ignore "?"
 '''
 
 @v_args(inline=True)
@@ -127,43 +128,38 @@ class EecalpyScriptTransformer(Transformer):
     def squared(self, eevalue):
         return eevalue**2
 
+
 eecalpy_script_parser = Lark(
     eecalpy_grammar,
     parser='lalr',
     transformer=EecalpyScriptTransformer()
 )
-# eecal = eecalpy_script_parser.parse
 
 def _parse_line(line):
     line = line.strip()
-    if line.startswith('#!'):
-        return '\n# ' + line[2:].strip()
     if line == '' or line.startswith('#'):
         return None
     if line.startswith("exit"):
         raise EOFError
 
-    line = line.replace(' ', '')
     try:
-        if line.find('?') > -1:
-            return line.replace('?', ' = ') + str(eecalpy_script_parser.parse(line))
         return str(eecalpy_script_parser.parse(line))
     except KeyError as e:
         print(e)
     except UnexpectedInput as u:
         print(line)
-        print(' '*(u.pos_in_stream-1), '↧')
+        print(' '*(u.pos_in_stream-1), '|')
         print(' '*(u.pos_in_stream-1), 'unexpedted symbol')
         print(u)
 
-def console():
+def ee_console():
     while True:
         try:
             print(_parse_line(input('» ')))
         except EOFError:
             break
 
-def script(scr, print_output=True):
+def ee_script(scr, print_output=True):
     out = [_parse_line(l.strip()) for l in scr.split('\n')]
     out = [str(o) for o in filter(lambda x: x, out)]
     
@@ -173,8 +169,9 @@ def script(scr, print_output=True):
     for line in out:
         print(line)
 
-def script_file(scr_file):
+def ee_script_file(scr_file):
     with open(scr_file, 'r') as script:
         out = [_parse_line(l.strip()) for l in script.readlines()]
     
-    return '\n'.join([str(o) for o in filter(lambda x: x, out)])
+    scr = '\n'.join([str(o) for o in filter(lambda x: x, out)])
+    ee_script(scr)

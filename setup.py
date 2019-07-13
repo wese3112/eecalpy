@@ -15,6 +15,12 @@ setuptools.setup(name='eecalpy',
       install_requires=[
           'lark-parser',
       ],
+      # scripts=['bin/eecalpy.cmd'],
+      entry_points={
+          'console_scripts': [
+              'eecalpy = eecalpy.__main__:main'
+          ]
+      },
       zip_safe=False,
       classifiers=[
             "Programming Language :: Python :: 3",
