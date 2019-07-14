@@ -42,8 +42,8 @@ def test_tolerance(unit, val, tol):
 
 @given(
     unit=st.sampled_from((U, I, P, Usq, Isq, Factor)),
-    a=st.floats(allow_nan=False, allow_infinity=False),
-    b=st.floats(allow_nan=False, allow_infinity=False)
+    a=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False),
+    b=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False)
 )
 def test_tolerance_sign(unit, a, b):
     eu = unit.from_min_max(a, b)

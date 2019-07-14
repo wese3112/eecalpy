@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+from decimal import Decimal
 
 def min_max_to_nom_tol(min_value, max_value):
     '''Returns the value in the middle of the given min and max value pair
@@ -32,12 +33,20 @@ def unit_factor_and_prefix(value):
         (1e12, 'T')
     ]
 
-    for factor, prefix in factors_prefixes:
-        # abs(value) is used to handle negative values
-        if abs(value) < factor * 1e3:
-            return factor, prefix
+    ranges = list(zip(factors_prefixes[:-1], factors_prefixes[1:]))
+
+    for rr in ranges:
+        a, b = rr
+        lower, prefix = a
+        upper, _ = b
+    
+        if lower <= abs(value) < upper:
+            return lower, prefix
     else:
-        return factors_prefixes[-1]
+        if abs(value) < factors_prefixes[0][0]:
+            return factors_prefixes[0]
+        else:
+            return factors_prefixes[-1]
 
 
 class ElectricalUnit:
@@ -50,8 +59,8 @@ class ElectricalUnit:
         self._unit = unit
         if limits is None:
             limits = (  # create to pick min/max value (value might be negative)
-                value * (1 - self.tolerance),
-                value * (1 + self.tolerance)
+                float(Decimal(str(value)) * Decimal(str(1 - self.tolerance))),
+                float(Decimal(str(value)) * Decimal(str(1 + self.tolerance)))
             )
 
         self._min, self._max = min(limits), max(limits)
@@ -85,7 +94,7 @@ class ElectricalUnit:
     def _variation_repr(self):
         # variation here is the ± value distance from the max/min value
         # to the nominal value (there might be a better name for it...)
-        variation = (self.max - self.min) / 2
+        variation = float(Decimal(str(self.max)) - Decimal(str(self.min))) / 2
         factor, prefix = unit_factor_and_prefix(variation) 
 
         return f'(± {abs(round(variation/factor, 2))}{prefix}{self.unit})'
