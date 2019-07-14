@@ -2,6 +2,7 @@ language: python
 
 install:
   - pip install lark-parser
+  - pip install hypothesis
 
 script:
   - pytest
