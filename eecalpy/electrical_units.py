@@ -5,9 +5,15 @@ def min_max_to_nom_tol(min_value, max_value):
     (named as nominal value) and the +/- tolerance in respect to this nominal
     value as a tuple.
     '''
+    if min_value == max_value == 0.0:
+        return 0.0, 0.0, None
+
+    if min_value == -max_value:
+        return 0.0, None, (min_value, max_value)
+
     nominal = (min_value + max_value) / 2
     tolerance = abs((max_value - nominal) / nominal)
-    return nominal, tolerance
+    return nominal, tolerance, None
 
 def unit_factor_and_prefix(value):
     '''Returns a factor as float and unit prefix as string for a given value.
@@ -23,32 +29,38 @@ def unit_factor_and_prefix(value):
         (1e3, 'k'),
         (1e6, 'M'),
         (1e9, 'G'),
+        (1e12, 'T')
     ]
 
     for factor, prefix in factors_prefixes:
         # abs(value) is used to handle negative values
         if abs(value) < factor * 1e3:
             return factor, prefix
+    else:
+        return factors_prefixes[-1]
 
 
 class ElectricalUnit:
     '''This is the base class for all electrical units'''
     
-    def __init__(self, value, tolerance=0.0, unit=''):
+    def __init__(self, value, tolerance=0.0, unit='', limits=None):
         self.value = value
-        self.tolerance = float(tolerance)
+        self.tolerance = 0.0 if tolerance is None else float(tolerance)
         
         self._unit = unit
-        limits = (  # create to pick min/max value (value might be negative)
-            value * (1 - tolerance),
-            value * (1 + tolerance)
-        )
+        if limits is None:
+            limits = (  # create to pick min/max value (value might be negative)
+                value * (1 - self.tolerance),
+                value * (1 + self.tolerance)
+            )
+
         self._min, self._max = min(limits), max(limits)
+        
 
     @classmethod
     def from_min_max(cls, _min, _max):
-        nom, tol = min_max_to_nom_tol(_min, _max)
-        return cls(nom, tol)
+        nom, tol, lim = min_max_to_nom_tol(_min, _max)
+        return cls(nom, tol, limits=lim)
 
     @property
     def min(self):
@@ -160,7 +172,7 @@ class Factor(ElectricalUnit):
     units, a Factor might also have a tolerance range.
     '''
 
-    def __init__(self, factor, tolerance=0.0):
+    def __init__(self, factor, tolerance=0.0, limits=None):
         super(Factor, self).__init__(factor, tolerance, '')
     
     def __mul__(self, other):
@@ -198,7 +210,7 @@ class Factor(ElectricalUnit):
 
 class R(ElectricalUnit):
 
-    def __init__(self, resistance, tolerance=0.0, alpha_ppm=None):
+    def __init__(self, resistance, tolerance=0.0, alpha_ppm=None, limits=None):
         assert resistance > 0, 'resistance must be > 0'
         super(R, self).__init__(resistance, tolerance, 'Ω')
         
@@ -209,7 +221,7 @@ class R(ElectricalUnit):
     
     @classmethod
     def from_min_max(cls, r_min, r_max, alpha_ppm=None):
-        r_nom, r_tol = min_max_to_nom_tol(r_min, r_max)
+        r_nom, r_tol, _ = min_max_to_nom_tol(r_min, r_max)
         return cls(r_nom, r_tol, alpha_ppm)
     
     @property
@@ -334,7 +346,7 @@ class R(ElectricalUnit):
 
 class U(ElectricalUnit):
 
-    def __init__(self, voltage, tolerance=0.0):
+    def __init__(self, voltage, tolerance=0.0, limits=None):
         super(U, self).__init__(voltage, tolerance, 'V')
 
         # unit conversions when multiplying U with other units
@@ -358,7 +370,7 @@ class U(ElectricalUnit):
 
 class I(ElectricalUnit):
 
-    def __init__(self, current, tolerance=0.0):
+    def __init__(self, current, tolerance=0.0, limits=None):
         super(I, self).__init__(current, tolerance, 'A')
 
         # unit conversions when multiplying I with other units
@@ -380,7 +392,7 @@ class I(ElectricalUnit):
 
 class P(ElectricalUnit):
 
-    def __init__(self, current, tolerance=0.0):
+    def __init__(self, current, tolerance=0.0, limits=None):
         super(P, self).__init__(current, tolerance, 'W')
 
         # unit conversions when multiplying U with other units
@@ -397,7 +409,7 @@ class P(ElectricalUnit):
 
 class Usq(ElectricalUnit):
 
-    def __init__(self, current, tolerance=0.0):
+    def __init__(self, current, tolerance=0.0, limits=None):
         super(Usq, self).__init__(current, tolerance, 'V²')
 
         # unit conversions when multiplying U with other units
@@ -415,7 +427,7 @@ class Usq(ElectricalUnit):
 
 class Isq(ElectricalUnit):
 
-    def __init__(self, current, tolerance=0.0):
+    def __init__(self, current, tolerance=0.0, limits=None):
         super(Isq, self).__init__(current, tolerance, 'A²')
 
         # unit conversions when multiplying U with other units

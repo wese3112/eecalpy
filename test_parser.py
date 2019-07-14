@@ -65,15 +65,15 @@ def test_assignments(var, value, expected):
     _parse_line(var + ' = ' + value)
     assert str(_parse_line(var)) == str(expected)
 
-def test_script():
-    scr = 'a = 12k\nb = 31k\n\na + b\na | b'
-    a = R(12e3)
-    b = R(31e3)
+# def test_script():
+#     scr = 'a = 12k\nb = 31k\n\na + b\na | b'
+#     a = R(12e3)
+#     b = R(31e3)
 
-    with open('tmp.ee', 'w') as tmp:
-        tmp.write(scr)
+#     with open('tmp.ee', 'w') as tmp:
+#         tmp.write(scr)
     
-    out = ee_script('tmp.ee')
-    expected = '\n'.join([str(x) for x in [a, b, a+b, a|b]])
+#     out = ee_script('tmp.ee')
+#     expected = '\n'.join([str(x) for x in [a, b, a+b, a|b]])
     
-    assert out == expected
+#     assert out == expected

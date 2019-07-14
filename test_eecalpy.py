@@ -1,7 +1,9 @@
 # -*- coding: UTF-8 -*-
 import pytest
+import random
+from hypothesis import given, assume, note, settings, Verbosity
+import hypothesis.strategies as st
 from eecalpy.electrical_units import *
-
 
 @pytest.mark.parametrize(
     "unit",
@@ -21,22 +23,27 @@ def test_R_temp_coeff():
     r = R(1e3, 0.01, 200)
     assert r.alpha_ppm == 200
 
-@pytest.mark.parametrize(
-    "eu,_min,_value,_max",
-    [
-        (U(10, 0.1), 9.0, 10.0, 11.0),
-        (R(2, 0.01), 1.98, 2.0, 2.02),
-        (I(-10, 0.1), -11.0, -10.0, -9.0)
-    ]
+@given(
+    unit=st.sampled_from((U, R, I, P, Usq, Isq, Factor)),
+    val=st.floats(allow_nan=False, allow_infinity=False),
+    tol=st.floats(allow_nan=False, allow_infinity=False)
 )
-def test_tolerance(eu, _min, _value, _max):
-    assert eu.min == _min
-    assert eu.value == _value
-    assert eu.max == _max
+# @settings(max_examples=500, verbosity=Verbosity.verbose)
+def test_tolerance(unit, val, tol):
+    if unit == R:
+        assume(val > 0.0)
+    eu = unit(val, tol)
+    assert eu.pretty() != ''
+    assert eu.min <= eu.value <= eu.max
 
-def test_tolerance_sign():
-    r = R.from_min_max(3, 2)
-    assert r.tolerance == 0.2
+@given(
+    unit=st.sampled_from((U, I, P, Usq, Isq, Factor)),
+    a=st.floats(allow_nan=False, allow_infinity=False),
+    b=st.floats(allow_nan=False, allow_infinity=False)
+)
+def test_tolerance_sign(unit, a, b):
+    eu = unit.from_min_max(a, b)
+    assert eu.tolerance >= 0
 
 @pytest.mark.parametrize(
     "operation,expected",
