@@ -16,6 +16,10 @@ def test_classmethod_fmm(unit):
     assert eu.value == 2
     assert eu.max == 3
 
+@pytest.mark.parametrize("exponnent", list(range(-14, 15)))
+def test_factors(exponnent):
+    assert U(10**exponnent, 0.01).pretty(vrange=False).find('1000.0') == -1
+
 def test_R_temp_coeff():
     r = R(1e3)
     assert r.alpha_ppm == None
@@ -45,19 +49,18 @@ def test_tolerance_sign(unit, a, b):
     eu = unit.from_min_max(a, b)
     assert eu.tolerance >= 0
 
-@pytest.mark.parametrize(
-    "operation,expected",
-    [
-        (U(2.5) + U(2.5), 5.0),
-        (U(10) - U(5), 5.0),
-        (I(2.5) + I(2.5), 5.0),
-        (I(10) - I(5), 5.0),
-        (P(2.5) + P(2.5), 5.0),
-        (P(10) - P(5), 5.0)
-    ]
+@given(
+    unit=st.sampled_from((U, I, P, Usq, Isq)),
+    a=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False),
+    b=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False)
 )
-def test_operators(operation, expected):
-    assert operation.value == expected
+def test_operators(unit, a, b):
+    x = unit(a)
+    y = unit(b)
+    w = x + y
+    assert a + b == w.value
+    z = x - y
+    assert a - b == z.value
 
 def test_pretty():
     i1 = I(12e-6, 0.05)
