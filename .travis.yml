@@ -1,0 +1,7 @@
+language: python
+
+install:
+  - pip install lark-parser
+
+script:
+  - pytest

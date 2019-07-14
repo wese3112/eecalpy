@@ -1,16 +1,15 @@
 # eecalpy Python module
 
+[![pypi package](https://badge.fury.io/py/eecalpy.svg)](https://badge.fury.io/py/eecalpy)
+[![Build Status](https://travis-ci.org/wese3112/eecalpy.svg?branch=master)](https://travis-ci.org/wese3112/eecalpy)
+
 The *Electrical Engineering Calculations for Python* module is a
 collection of classes for simple to complex electrical calculations, with a
 special focus on handling tolerances.
 
 ## Installation
 
-The ``eecalpy`` package is available on the Python Package Index (PyPI):
-
-[![pypi package](https://badge.fury.io/py/eecalpy.svg)](https://badge.fury.io/py/eecalpy)
-
-The package needs Python 3+, you can install it with:
+The ``eecalpy`` package is available on the Python Package Index (PyPI). The package needs Python 3+, you can install it with:
 
     $ pip install eecalpy
 
