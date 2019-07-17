@@ -128,11 +128,12 @@ class EecalpyScriptTransformer(Transformer):
     def squared(self, eevalue):
         return eevalue**2
 
+ee_transformer = EecalpyScriptTransformer()
 
 eecalpy_script_parser = Lark(
     eecalpy_grammar,
     parser='lalr',
-    transformer=EecalpyScriptTransformer()
+    transformer=ee_transformer
 )
 
 def _parse_line(line):
