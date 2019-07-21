@@ -1,20 +1,20 @@
 # -*- coding: UTF-8 -*-
 import pytest
 import random
-from hypothesis import given, assume, note, settings, Verbosity
+from hypothesis import given, example, assume, note, settings, Verbosity
 import hypothesis.strategies as st
 from eecalpy.electrical_units import *
 
-@pytest.mark.parametrize(
-    "unit",
-    [U, R, I, P, Factor, Usq, Isq]
+@given(
+    unit=st.sampled_from((U, R, I, P, Usq, Isq, Factor)),
+    _min=st.floats(min_value=1e-14, max_value=1e20, allow_nan=False, allow_infinity=False),
+    _max=st.floats(min_value=1e-14, max_value=1e20, allow_nan=False, allow_infinity=False)
 )
-def test_classmethod_fmm(unit):
-    eu = unit.from_min_max(1, 3)
+def test_classmethod_fmm(unit, _min, _max):
+    assume(_max >= _min)
+    eu = unit.from_min_max(_min, _max)
     assert isinstance(eu, unit)
-    assert eu.min == 1
-    assert eu.value == 2
-    assert eu.max == 3
+    assert eu.min <= eu.value <= eu.max
 
 @pytest.mark.parametrize("exponnent", list(range(-14, 15)))
 def test_factors(exponnent):
@@ -29,8 +29,8 @@ def test_R_temp_coeff():
 
 @given(
     unit=st.sampled_from((U, R, I, P, Usq, Isq, Factor)),
-    val=st.floats(allow_nan=False, allow_infinity=False),
-    tol=st.floats(allow_nan=False, allow_infinity=False)
+    val=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False),
+    tol=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
 )
 # @settings(max_examples=500, verbosity=Verbosity.verbose)
 def test_tolerance(unit, val, tol):
@@ -42,8 +42,8 @@ def test_tolerance(unit, val, tol):
 
 @given(
     unit=st.sampled_from((U, I, P, Usq, Isq, Factor)),
-    a=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False),
-    b=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False)
+    a=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False),
+    b=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
 )
 def test_tolerance_sign(unit, a, b):
     eu = unit.from_min_max(a, b)
@@ -51,8 +51,8 @@ def test_tolerance_sign(unit, a, b):
 
 @given(
     unit=st.sampled_from((U, I, P, Usq, Isq)),
-    a=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False),
-    b=st.floats(min_value=1e-200, max_value=1e200, allow_nan=False, allow_infinity=False)
+    a=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False),
+    b=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
 )
 def test_operators(unit, a, b):
     x = unit(a)
