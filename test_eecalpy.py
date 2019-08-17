@@ -5,11 +5,10 @@ from hypothesis import given, example, assume, note, settings, Verbosity
 import hypothesis.strategies as st
 from eecalpy.electrical_units import *
 
-@given(
-    unit=st.sampled_from((U, R, I, P, Usq, Isq, Factor)),
-    _min=st.floats(min_value=1e-14, max_value=1e20, allow_nan=False, allow_infinity=False),
-    _max=st.floats(min_value=1e-14, max_value=1e20, allow_nan=False, allow_infinity=False)
-)
+hyp_random_unit = st.sampled_from((U, R, I, P, Usq, Isq, Factor))
+hyp_float = st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
+
+@given(unit=hyp_random_unit, _min=hyp_float, _max=hyp_float)
 def test_classmethod_fmm(unit, _min, _max):
     assume(_max >= _min)
     eu = unit.from_min_max(_min, _max)
@@ -27,11 +26,7 @@ def test_R_temp_coeff():
     r = R(1e3, 0.01, 200)
     assert r.alpha_ppm == 200
 
-@given(
-    unit=st.sampled_from((U, R, I, P, Usq, Isq, Factor)),
-    val=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False),
-    tol=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
-)
+@given(unit=hyp_random_unit, val=hyp_float, tol=hyp_float)
 # @settings(max_examples=500, verbosity=Verbosity.verbose)
 def test_tolerance(unit, val, tol):
     if unit == R:
@@ -40,20 +35,12 @@ def test_tolerance(unit, val, tol):
     assert eu.pretty() != ''
     assert eu.min <= eu.value <= eu.max
 
-@given(
-    unit=st.sampled_from((U, I, P, Usq, Isq, Factor)),
-    a=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False),
-    b=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
-)
+@given(unit=hyp_random_unit, a=hyp_float, b=hyp_float)
 def test_tolerance_sign(unit, a, b):
     eu = unit.from_min_max(a, b)
     assert eu.tolerance >= 0
 
-@given(
-    unit=st.sampled_from((U, I, P, Usq, Isq)),
-    a=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False),
-    b=st.floats(min_value=1e-14, max_value=1e100, allow_nan=False, allow_infinity=False)
-)
+@given(unit=st.sampled_from((U, I, P, Usq, Isq)), a=hyp_float, b=hyp_float)
 def test_operators(unit, a, b):
     x = unit(a)
     y = unit(b)

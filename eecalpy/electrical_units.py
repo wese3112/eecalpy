@@ -1,22 +1,35 @@
 # -*- coding: UTF-8 -*-
 from decimal import Decimal
+from typing import Optional, Tuple
 
-def min_max_to_nom_tol(min_value, max_value):
-    '''Returns the value in the middle of the given min and max value pair
-    (named as nominal value) and the +/- tolerance in respect to this nominal
-    value as a tuple.
+
+def mean_and_tolerance(lower_lim: float, upper_lim: float) -> Tuple[float, Optional[float]]:
+    '''Calculate mean value and tolerance of a value range
+
+    The mean value here is the value in the middle of the given min/max float
+    value pair. The tolerance here is the percentual deviation of the min/max
+    values in respect to this mean value.
+
+    Args:
+        lower_lim: lower limit of the value range as float
+        upper_lim: upper limit of the value range as float
+    
+    Returns:
+        A tuple returning the mean value and tolerance of the given values.
     '''
-    if min_value == max_value == 0.0:
-        return 0.0, 0.0, None
+    if lower_lim == upper_lim == 0.0:
+        return 0.0, 0.0
 
-    if min_value == -max_value:
-        return 0.0, None, (min_value, max_value)
+    if lower_lim == -upper_lim:
+        return 0.0, None
 
-    nominal = (min_value + max_value) / 2
-    tolerance = abs((max_value - nominal) / nominal)
-    return nominal, tolerance, None
+    mean = (lower_lim + upper_lim) / 2
+    tol = abs((upper_lim - mean) / mean)
+    
+    return mean, None if tol > 1.0 or lower_lim == upper_lim else tol
 
-def unit_factor_and_prefix(value):
+
+def unit_factor_and_prefix(value: float) -> Tuple[float, str]:
     '''Returns a factor as float and unit prefix as string for a given value.
 
     Example: value = 0.000002 --> factor = 1e-6, prefix = 'µ' --> 2µ
@@ -68,8 +81,8 @@ class ElectricalUnit:
 
     @classmethod
     def from_min_max(cls, _min, _max):
-        nom, tol, lim = min_max_to_nom_tol(_min, _max)
-        return cls(nom, tol, limits=lim)
+        mean, tol = mean_and_tolerance(_min, _max)
+        return cls(mean, tol, limits=(_min, _max) if tol is None else None)
 
     @property
     def min(self):
@@ -93,7 +106,7 @@ class ElectricalUnit:
 
     def _variation_repr(self):
         # variation here is the ± value distance from the max/min value
-        # to the nominal value (there might be a better name for it...)
+        # to the mean value (there might be a better name for it...)
         variation = float(Decimal(str(self.max)) - Decimal(str(self.min))) / 2
         factor, prefix = unit_factor_and_prefix(variation) 
 
@@ -230,8 +243,8 @@ class R(ElectricalUnit):
     
     @classmethod
     def from_min_max(cls, r_min, r_max, alpha_ppm=None):
-        r_nom, r_tol, _ = min_max_to_nom_tol(r_min, r_max)
-        return cls(r_nom, r_tol, alpha_ppm)
+        r_mean, r_tol = mean_and_tolerance(r_min, r_max)
+        return cls(r_mean, r_tol, alpha_ppm)
     
     @property
     def temperature(self):
