@@ -7,6 +7,8 @@ The *Electrical Engineering Calculations for Python* module is a
 collection of classes for simple to complex electrical calculations, with a
 special focus on handling tolerances.
 
+**USE AT OWN RISK, I DO NOT GUARANTEE THE CORRECTNESS OF THE CALCULATIONS IN THIS PACKAGE**
+
 ## Installation
 
 The ``eecalpy`` package is available on the Python Package Index (PyPI). The package needs Python 3+, you can install it with:
