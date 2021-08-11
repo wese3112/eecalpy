@@ -412,6 +412,7 @@ class I(ElectricalUnit):
         assert other == 2, 'currents can only be squared using I(..)**2'
         return Isq.from_min_max(self.min**2, self.max**2)
 
+
 class P(ElectricalUnit):
 
     def __init__(self, current, tolerance=0.0, limits=None):
@@ -419,7 +420,8 @@ class P(ElectricalUnit):
 
         # unit conversions when multiplying U with other units
         self.mul_conversions = {
-            Factor: P  # P * f = P
+            Factor: P,  # P * f = P
+            Time: E  # P * Time = E
         }
         # unit conversions when dividing P with other units
         self.div_conversions = {
@@ -428,6 +430,40 @@ class P(ElectricalUnit):
             P: Factor,  # P / P = f
             Factor: P  # P / f = P
         }
+
+
+class Time(ElectricalUnit):
+
+    def __init__(self, time, tolerance=0.0, limits=None):
+        super(Time, self).__init__(time, tolerance, 's')
+
+        # unit conversions when multiplying U with other units
+        self.mul_conversions = {
+            Factor: Time  # Time * f = Time
+        }
+        # unit conversions when dividing P with other units
+        self.div_conversions = {
+            Time: Factor,  # Time / Time = f
+            Factor: Time  # Time / f = Time
+        }
+
+
+class E(ElectricalUnit):
+
+    def __init__(self, energy, tolerance=0.0, limits=None):
+        super(E, self).__init__(energy, tolerance, 'J')
+
+        # unit conversions when multiplying U with other units
+        self.mul_conversions = {
+            Factor: E  # E * f = E
+        }
+        # unit conversions when dividing P with other units
+        self.div_conversions = {
+            Time: P,  # E / Time = P
+            E: Factor,  # E / E = f
+            Factor: E  # E / f = E
+        }
+
 
 class Usq(ElectricalUnit):
 
@@ -446,6 +482,7 @@ class Usq(ElectricalUnit):
             Usq: Factor,  # U² / U² = f
             Factor: Usq  # U² / f = U²
         }
+
 
 class Isq(ElectricalUnit):
 
