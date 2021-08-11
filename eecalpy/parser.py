@@ -30,7 +30,7 @@ eecalpy_grammar = r'''
 
 value: SIGNED_NUMBER
 prefix: /[pfnµmkGM]/
-unit: /[VAWf]/
+unit: /[VAWJsf]/
 name: /[a-zA-Z][a-zA-Z_0-9]*/
 // temperature: "@" value "°C"
 
@@ -82,6 +82,8 @@ class EecalpyScriptTransformer(Transformer):
             'V': U,
             'A': I,
             'W': P,
+            'J': E,
+            's': Time,
             'f': Factor
         }[symbol]
 
