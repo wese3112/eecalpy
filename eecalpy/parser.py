@@ -156,7 +156,9 @@ def _parse_line(line):
 def ee_console():
     while True:
         try:
-            print(_parse_line(input('» ')))
+            line = _parse_line(input('» '))
+            if line is not None:
+                print(line)
         except EOFError:
             break
 
