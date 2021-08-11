@@ -1,4 +1,4 @@
-from .electrical_units import U, R, I, P, Factor, Usq, Isq
+from .electrical_units import U, R, I, P, E, Time, Factor, Usq, Isq
 from lark import Lark, Transformer, v_args, UnexpectedInput
 
 # with open('./eecalpy/eecalpy_grammar.lark', 'r') as grammar_definition:
