@@ -180,3 +180,6 @@ def ee_script_file(scr_file):
     
     scr = '\n'.join([str(o) for o in filter(lambda x: x, out)])
     ee_script(scr)
+
+def parse_expression(expression):
+      return eecalpy_script_parser(expression)
