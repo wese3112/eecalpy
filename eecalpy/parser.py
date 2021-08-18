@@ -182,4 +182,4 @@ def ee_script_file(scr_file):
     ee_script(scr)
 
 def parse_expression(expression):
-      return eecalpy_script_parser(expression)
+    return eecalpy_script_parser.parse(expression)
