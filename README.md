@@ -115,6 +115,8 @@ The available classes are:
 * Resistance `R(resistance, tolerance=0.0, alpha_ppm=None)`
 * Current `I(current, tolerance=0.0)`
 * Power `P(power, tolerance=0.0)`
+* Energy `E(energy, tolerance=0.0)`
+* Time `Time(time, tolerance=0.0`
 * Factor `Factor(factor, tolerance)` (unitless factor, example below)
 * squared Voltage (V²) `Usq(voltage, tolerance=0.0)`
 * squared Current (A²) `Isq(voltage, tolerance=0.0)`
@@ -171,3 +173,43 @@ This does not work because voltage divided by power is not a known class:
     Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
     TypeError: unsupported operand type(s) for /: 'type' and 'type'
+
+## How to use
+
+### calling the provided classes
+
+One of the approaches is to use eecalpy inside a script as shown above. Here's my recommendation:
+
+    import eecalpy as ee
+    
+    r1 = ee.R(1e3)
+    u1 = ee.U(5)
+    ...
+
+### using the expression parser (preview)
+
+There is a parser that comes with eecalpy. It is not completely finished yet and some expressions do not yet work. It can be used for simple expressions though, like:
+
+    from eecalpy.parser import parse_expression as pe
+    
+    r1 = pe('150k 1%')  # 150kΩ 1% resistor
+    u1 = pe('5V')
+    i1 = pe('100mA')
+    t1 = pe('200µs')
+    u1 * i1 * t1
+    >>> 100.0µJ
+
+### using eecalpy console (preview)
+
+When installing eecalpy, the `eecalpy console` command is also installed and can be called from the command line. This opens a REPL where eecalpy *scripts* can be executed:
+
+    PS C:\Users\wese3112> eecalpy console
+    » u1 = 5V 1%
+    u1 = 5.0V ± 1.0% (± 50.0mV) [4.9500 .. 5.0500]V
+    » i1 = 10mA
+    i1 = 10.0mA
+    » t1 = 200µs
+    t1 = 200.0µs
+    » u1 * i1 * t1
+    10.0µJ ± 1.0% (± 100.0nJ) [9.9000 .. 10.1000]µJ
+    »
